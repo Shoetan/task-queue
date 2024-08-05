@@ -5,7 +5,10 @@ import (
 	"log"
 	"os"
 	"context"
+  "time"
 
+
+	"github.com/go-gomail/gomail"
 	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
@@ -50,7 +53,7 @@ func EnqueueEmailTask(client *redis.Client, task EmailTask) error {
 
 
 
-func DequeueEmailTask(client *redis.Client) (*EmailTask, error) {
+func dequeueEmailTask(client *redis.Client) (*EmailTask, error) {
 	jsonTask, err := client.LPop(ctx, "email_task").Result()
 
 	if err != nil {
@@ -65,4 +68,37 @@ func DequeueEmailTask(client *redis.Client) (*EmailTask, error) {
 		return nil, err
 	}
 	return &task, nil
+}
+
+func SendEmail(task EmailTask) error {
+	m := gomail.NewMessage()
+	m.SetHeader("From", "queue@gmail.com")
+	m.SetHeader("To", task.Recipent)
+	m.SetHeader("Subject", task.Subject)
+	m.SetBody("text/plain", task.Body)
+
+	d := gomail.Dialer{Host: "localhost", Port: 587}
+
+	return d.DialAndSend(m)
+
+}
+
+func Worker(client *redis.Client) {
+	for {
+		task, err := dequeueEmailTask(client)
+
+		if err == redis.Nil {
+			time.Sleep(1 * time.Second)
+			continue
+		} else if err != nil {
+			log.Fatalf("Error dequeing task: %v\n", err)
+			continue
+		}
+
+		err = SendEmail(*task)
+
+		if err != nil {
+			log.Fatalf("Error sending email:%v\n", err)
+		}
+	}
 }
