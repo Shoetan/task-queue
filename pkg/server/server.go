@@ -32,7 +32,7 @@ func (s *APISERVER) Run() error{
 
 	router := http.NewServeMux()
 
-	router.HandleFunc("/register", service.RegisterUser(dele))
+	router.HandleFunc("GET /register", service.RegisterUser(dele))
 
 	server := http.Server{
 		Addr: s.addr,
