@@ -3,7 +3,9 @@ package server
 import (
 	"log"
 	"net/http"
+
 	"github.com/Shoetan/pkg/db"
+	// "github.com/Shoetan/pkg/utils"
 
 	"github.com/Shoetan/pkg/service"
 )
@@ -32,7 +34,12 @@ func (s *APISERVER) Run() error{
 
 	router := http.NewServeMux()
 
-	router.HandleFunc("GET /register", service.RegisterUser(dele))
+	router.HandleFunc("POST /register", service.RegisterUser(dele))
+
+
+	// redisClient := utils.RedisClient()
+
+	// go utils.Worker(redisClient)
 
 	server := http.Server{
 		Addr: s.addr,

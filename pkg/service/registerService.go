@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -22,7 +23,6 @@ type response struct{
 	Name string `json:"username/name"`
 	CreatedAt time.Time `json:"created_at"`
 }
-
 
 
 
@@ -59,6 +59,7 @@ func RegisterUser( db *sql.DB) http.HandlerFunc  {
 
 			default:
 				http.Error(w,"Email already exists", http.StatusBadRequest)
+				return
 			
 		}
 
@@ -69,6 +70,24 @@ func RegisterUser( db *sql.DB) http.HandlerFunc  {
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		emailTask := utils.EmailTask{
+			Recipent: payload.Email,
+			Subject: "Testing Queue",
+			Body: "Hello golang mentor",
+		}
+
+		// Create a queue for the email task
+
+		redisClient := utils.RedisClient()
+
+		err = utils.EnqueueEmailTask(redisClient, emailTask)
+
+		if err != nil {
+			fmt.Printf("Error Enqueueing task: %v", err)
+		}else{
+			fmt.Println("Task enqueued successfully")
 		}
 
 		response := response{

@@ -17,8 +17,6 @@ func Database() (*sql.DB, error)  {
 
 	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", "localhost", user, password, dbname, "disable") 
 
-		fmt.Println(connectionString)
-
 		db, err := sql.Open("postgres", connectionString)
 
 		if err != nil {
@@ -28,7 +26,7 @@ func Database() (*sql.DB, error)  {
 		if err := db.Ping() ; err != nil {
 			fmt.Println(err.Error())
 		} else {
-			fmt.Println("Connection to database was succesfull 👍 ")
+			fmt.Println("Connection to database was succesful 👍 ")
 		}
 		return db, err
 
